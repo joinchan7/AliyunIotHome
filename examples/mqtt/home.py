@@ -1,9 +1,9 @@
-import context
 from aliyun_iot_device.mqtt import Client as IOT
-import time
 from multiprocessing import Process, Value
-import json
 import RPi.GPIO as GPIO
+import context
+import time
+import json
 import smbus
 
 
@@ -17,21 +17,43 @@ def on_message(client, userdata, msg):
     print(str(msg.payload))
 
     key = json.loads(msg.payload)['params']
-
     if 'Lock_control' in key:
         lock_control(key)
     elif 'LightLuminance' in key:
         led_control(key)
-    elif 'CurtainOperation' in key:
-        if(key['CurtainOperation'] == 1):
-            sensor_control()
-        else:
+    elif 'CurtainModel' in key:
+        curtain_model(key)
+    elif 'CurtainControl' in key:
+        try:
+            p3.terminate()
+        except:
             pass
-    elif 'cts' in key:
-        print(key)
         curtain_control(key)
     elif 'StayAlarmSwitch' in key:
         alarm_control(key)
+    elif 'LightSwitch' in key:
+        led_switch(key)
+
+
+def curtain_model(key):
+    val = key['CurtainModel']
+    topic = '/sys/'+PRODUCE_KEY+'/' + DEVICE_NAME+'/thing/event/property/post'
+    payload_json = {
+        'id': int(time.time()),
+        'params': {
+            'CurtainModel': val
+        },
+        'method': "thing.event.property.post"
+    }
+    iot.publish(topic=topic, payload=str(payload_json))
+
+    if val == 1:
+        global p3
+        p3 = Process(target=sensor_child)
+        p3.start()
+    else:
+        if p3.is_alive:
+            p3.terminate()
 
 
 def alarm_control(key):
@@ -73,27 +95,27 @@ def alarm_child(num2):
                     time.sleep(0.5)
             else:
                 GPIO.output(PIN2, GPIO.HIGH)
-            time.sleep(2)
+        time.sleep(2)
 
 
-def sensor_control():
+def sensor_child():
     sensor_pin = 4
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(sensor_pin, GPIO.IN)
+    cur = 0
+    last = 0
     while True:
-        # bug:监视了传感器的值后会一直执行,需求是只执行一次
-        # 思路:1.如果传感器GPIO.input(sensor_pin)值改变则执行
-        #     2.在变量i发生变化的时候主动通知
-
-        if GPIO.input(sensor_pin) == 1:
-            key = {'cts': 1}
-            curtain_control(key)
+        # 这里GPIO.input(sensor_pin)会自动变化
+        last = cur
+        cur = GPIO.input(sensor_pin)
+        if last == 1 and cur == 0:  # 天变亮:拉开窗帘
+            curtain_control({'CurtainControl': 1})
+        elif last == 0 and cur == 1:  # 天变暗:关闭窗帘
+            curtain_control({'CurtainControl': 0})
         else:
-            key = {'cts': 0}
-            curtain_control(key)
+            pass
         time.sleep(1)
-        print(GPIO.input(sensor_pin))
 
 
 def curtain_control(key):
@@ -138,11 +160,24 @@ def curtain_control(key):
     IN3 = 13
     IN4 = 6
     setUp()
-    val = key['cts']
+    val = key['CurtainControl']
+
+    topic = '/sys/'+PRODUCE_KEY+'/' + DEVICE_NAME+'/thing/event/property/post'
+    payload_json = {
+        'id': int(time.time()),
+        'params': {
+            'CurtainControl': val
+        },
+        'method': "thing.event.property.post"
+    }
+    iot.publish(topic=topic, payload=str(payload_json))
+
     if val == 0:
-        backward(0.001, 860)
+        print('bk')
+        backward(0.0001, 1000)
     else:
-        forward(0.001, 860)
+        print('fo')
+        forward(0.0001, 1000)
 
 
 def lock_control(key):
@@ -173,14 +208,44 @@ def lock_control(key):
     time.sleep(1)
 
 
-def led_control(key):
-    val = key['LightLuminance']
-
+def led_switch(key):
+    val = key['LightSwitch']
+    if val == 0:
+        state = 0
+    else:
+        state = 100
     topic = '/sys/'+PRODUCE_KEY+'/' + DEVICE_NAME+'/thing/event/property/post'
     payload_json = {
         'id': int(time.time()),
         'params': {
-            'LightLuminance': val  # int
+            'LightSwitch': val,
+            'LightLuminance': state
+        },
+        'method': "thing.event.property.post"
+    }
+    iot.publish(topic=topic, payload=str(payload_json))
+
+    global num
+    if key['LightSwitch'] == 1:
+        num = 100
+        num = Value("d", num)
+    else:
+        num = 0
+        num = Value("d", num)
+
+
+def led_control(key):
+    val = key['LightLuminance']
+    if val == 0:
+        state = 0
+    else:
+        state = 1
+    topic = '/sys/'+PRODUCE_KEY+'/' + DEVICE_NAME+'/thing/event/property/post'
+    payload_json = {
+        'id': int(time.time()),
+        'params': {
+            'LightLuminance': val,
+            'LightSwitch': state
         },
         'method': "thing.event.property.post"
     }
@@ -202,7 +267,7 @@ def led_child(num):
     while True:
         i = int(num.value)
         pwm.ChangeDutyCycle(i)
-        time.sleep(0.2)
+        time.sleep(0.3)
 
 
 def ht_upload():
@@ -260,4 +325,8 @@ if __name__ == "__main__":
     except:
         p.terminate()
         p2.terminate()
-        print('stop')
+        try:
+            p3.terminate()
+        except:
+            pass
+        print('stop-children')
