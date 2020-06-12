@@ -17,7 +17,10 @@
 - `raspberry pi`：树莓派作为连接本地设备和控制平台的连接枢纽
 
 ### 项目模型
-![model](./img/model.png)
+
+| ![model](./img/model.png) |
+| :-----------------------: |
+|        项目模型图         |
 
 ### 支持的协议
 
@@ -42,9 +45,6 @@
 
 #### 数据后台管理
 
-##### 成品演示 GIF
-![demo]()
-
 ##### 项目展示
 
 - 后台
@@ -65,24 +65,28 @@
 
 ##### APP 展示
 
-- |              APP 图标              |               APP 主页                |         环境状态          |          家居控制          |
-  | :--------------------------------: | :-----------------------------------: | :-----------------------: | :------------------------: |
-  | ![device-info](./img/app-icon.jpg) | ![device-status](./img/app-index.jpg) | ![](./img/app-status.jpg) | ![](./img/app-control.jpg) |
+- |            APP 图标             |             APP 主页              |              环境状态               |               家居控制                |
+  | :-----------------------------: | :-------------------------------: | :---------------------------------: | :-----------------------------------: |
+  | ![app-icon](./img/app-icon.jpg) | ![app-index](./img/app-index.jpg) | ![app-status](./img/app-status.jpg) | ![app-control](./img/app-control.jpg) |
 
 ##### 实物展示
 
-| ![show-1](./img/show-1.jpg) | ![show-2](./img/show-2.jpg) | ![show-3](./img/show-3.jpg) |
-| :-------------------------: | :-------------------------: | :-------------------------: |
-| ![show-4](./img/show-4.jpg) | ![show-5](./img/show-5.jpg) | ![show-6](./img/show-6.jpg) |
-| ![show-7](./img/show-7.jpg) | ![show-8](./img/show-8.jpg) | ![show-9](./img/show-9.jpg) |
+- 图片演示
+  | ![show-1](./img/show-1.jpg) | ![show-2](./img/show-2.jpg) | ![show-3](./img/show-3.jpg) |
+  | :-------------------------: | :-------------------------: | :-------------------------: |
+  | ![show-4](./img/show-4.jpg) | ![show-5](./img/show-5.jpg) | ![show-6](./img/show-6.jpg) |
+  | ![show-7](./img/show-7.jpg) | ![show-8](./img/show-8.jpg) | ![show-9](./img/show-9.jpg) |
 
-### 使用注意事项
+- GIF 演示
+  ![demo](./img/demo.gif)
+
+### 注意事项
 
 - 使用 `http` 协议进行通讯时，需要 `token` 进行认证，`SDK` 默认使用内存型缓存（`cache-tools` 方案）进行 `token` 的保存。
 
 - ```python
-  #如果需要自行进行其他方案进行保存（file/memcached/redis），获取 token时，使用
+  # 如果需要自行进行其他方案进行保存（file/memcached/redis），获取 token时，使用
   iot.get_token(cache=False) ，
-  #publish 消息时，使用
+  # publish 消息时，使用
   iot.publish(payload=payload, token=token)
   ```
