@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-__author__ = "yansongda <me@yansongda.cn>"
-
 from cachetools import TTLCache
 import requests
 import hashlib
@@ -48,9 +44,11 @@ class Client(object):
         token: 发布时所携带的 token，如果为 None，则 SDK 自动缓存获取
         """
         if topic is None:
-            topic = DEFAULT_PUBLISH_TOPIC.format(product_key=self.product_key, device_name=self.device_name)
+            topic = DEFAULT_PUBLISH_TOPIC.format(
+                product_key=self.product_key, device_name=self.device_name)
         if topic == 'shadow':
-            topic = SHADOW_UPDATE_TOPIC.format(product_key=self.product_key, device_name=self.device_name)
+            topic = SHADOW_UPDATE_TOPIC.format(
+                product_key=self.product_key, device_name=self.device_name)
 
             data = {"method": payload['method']}
             if 'reported' in payload:
@@ -97,12 +95,14 @@ class Client(object):
         response = requests.post(HTTP_URI.format(region=self.region, uri=uri),
                                  data=data, headers=headers).json()
         if response['code'] != 0:
-            raise ValueError("与阿里云通讯出错，uri:{uri}，response:{response}".format(uri=uri, response=response))
+            raise ValueError("与阿里云通讯出错，uri:{uri}，response:{response}".format(
+                uri=uri, response=response))
 
         return response['info']
 
     def _get_sign(self):
         """获取签名
         """
-        content = "clientId" + self.client_id + "deviceName" + self.device_name + "productKey" + self.product_key
+        content = "clientId" + self.client_id + "deviceName" + \
+            self.device_name + "productKey" + self.product_key
         return hmac.new(bytes(self.device_secret, 'utf-8'), bytes(content, 'utf-8'), hashlib.sha1).hexdigest()

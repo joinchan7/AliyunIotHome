@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-__author__ = "yansongda <me@yansongda.cn>"
-
 import paho.mqtt.client as mqtt_client
 import hashlib
 import hmac
@@ -95,10 +91,12 @@ class Client(mqtt_client.Client):
         阿里云 IOT 套件不支持 retain
         """
         if topic is None:
-            topic = DEFAULT_PUBLISH_TOPIC.format(product_key=self.product_key, device_name=self.device_name)
+            topic = DEFAULT_PUBLISH_TOPIC.format(
+                product_key=self.product_key, device_name=self.device_name)
         if topic == 'shadow':
             import json
-            topic = SHADOW_UPDATE_TOPIC.format(product_key=self.product_key, device_name=self.device_name)
+            topic = SHADOW_UPDATE_TOPIC.format(
+                product_key=self.product_key, device_name=self.device_name)
 
             data = {"method": payload['method']}
             if 'reported' in payload:
@@ -117,9 +115,11 @@ class Client(mqtt_client.Client):
                 如果为'shadow'，则为阿里云影子系统主题，即"/shadow/get/{product_key}/{device_name}"
         """
         if topic is None:
-            topic = DEFAULT_SUBSCRIBE_TOPIC.format(product_key=self.product_key, device_name=self.device_name)
+            topic = DEFAULT_SUBSCRIBE_TOPIC.format(
+                product_key=self.product_key, device_name=self.device_name)
         if topic == 'shadow':
-            topic = SHADOW_GET_TOPIC.format(product_key=self.product_key, device_name=self.device_name)
+            topic = SHADOW_GET_TOPIC.format(
+                product_key=self.product_key, device_name=self.device_name)
 
         return super(Client, self).subscribe(topic, qos)
 
@@ -127,7 +127,8 @@ class Client(mqtt_client.Client):
         """topic: (string) 订阅的主题，默认为阿里云默认主题，即："/{product_key}/{device_name}/get"
         """
         if topic is None:
-            topic = DEFAULT_SUBSCRIBE_TOPIC.format(product_key=self.product_key, device_name=self.device_name)
+            topic = DEFAULT_SUBSCRIBE_TOPIC.format(
+                product_key=self.product_key, device_name=self.device_name)
 
         return super(Client, self).unsubscribe(topic)
 
@@ -141,7 +142,8 @@ class Client(mqtt_client.Client):
         else:
             mqtt_client_id, mqtt_user, mqtt_passwd = self._get_https_mqtt_info()
 
-        super(Client, self).__init__(mqtt_client_id, transport=self.transport, clean_session=self.clean_session)
+        super(Client, self).__init__(mqtt_client_id,
+                                     transport=self.transport, clean_session=self.clean_session)
         self.username_pw_set(mqtt_user, mqtt_passwd)
         if not self.domain_direct or self.tls:
             self.tls_set(ca_certs=self.ca_certs)
@@ -153,12 +155,17 @@ class Client(mqtt_client.Client):
         if self.tls:
             mode = "2"
 
-        mqtt_client_id = self.client_id + "|securemode=" + mode + ",signmethod=hmacsha1,timestamp=" + str(round(time.time())) + "|"
+        mqtt_client_id = self.client_id + "|securemode=" + mode + \
+            ",signmethod=hmacsha1,timestamp=" + str(round(time.time())) + "|"
         mqtt_user = self.device_name + "&" + self.product_key
-        mqtt_content = "clientId" + self.client_id + "deviceName" + self.device_name + "productKey" + self.product_key + "timestamp" + str(round(time.time()))
-        mqtt_passwd = hmac.new(bytes(self.device_secret, 'utf-8'), bytes(mqtt_content, 'utf-8'), hashlib.sha1).hexdigest()
+        mqtt_content = "clientId" + self.client_id + "deviceName" + self.device_name + \
+            "productKey" + self.product_key + \
+            "timestamp" + str(round(time.time()))
+        mqtt_passwd = hmac.new(bytes(self.device_secret, 'utf-8'),
+                               bytes(mqtt_content, 'utf-8'), hashlib.sha1).hexdigest()
 
-        self.mqtt_uri = DOMAIN_DIRECT_URI.format(product_key=self.product_key, region=self.region)
+        self.mqtt_uri = DOMAIN_DIRECT_URI.format(
+            product_key=self.product_key, region=self.region)
         self.mqtt_port = DOMAIN_DIRECT_PORT
 
         return mqtt_client_id, mqtt_user, mqtt_passwd
@@ -166,7 +173,8 @@ class Client(mqtt_client.Client):
     def _get_websockets_mqtt_info(self):
         websockets_info = self._get_doamin_direct_mqtt_info()
 
-        self.mqtt_uri = WEBSOCKETS_URI.format(product_key=self.product_key, region=self.region)
+        self.mqtt_uri = WEBSOCKETS_URI.format(
+            product_key=self.product_key, region=self.region)
         self.mqtt_port = WEBSOCKETS_PORT
 
         return websockets_info
@@ -193,5 +201,7 @@ class Client(mqtt_client.Client):
         return self.client_id, response['data']['iotId'], response['data']['iotToken']
 
     def _get_sign(self):
-        content = "clientId" + self.client_id + "deviceName" + self.device_name + "productKey" + self.product_key + "timestamp" + str(round(time.time()))
+        content = "clientId" + self.client_id + "deviceName" + self.device_name + \
+            "productKey" + self.product_key + \
+            "timestamp" + str(round(time.time()))
         return hmac.new(bytes(self.device_secret, 'utf-8'), bytes(content, 'utf-8'), hashlib.sha1).hexdigest()

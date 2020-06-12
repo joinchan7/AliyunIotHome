@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-__author__ = "yansongda <me@yansongda.cn>"
-
 import context
 from aliyun_iot_device.mqtt import Client as IOT
 import time
@@ -24,18 +20,18 @@ def lock_control(msg):
     # 门锁状态控制
     val = re.findall(r'\"Lock_control\":\d', str(msg.payload))
     status = str(val)[17]
-    
+
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
-    In_Pin=21
-    GPIO.setup(In_Pin,GPIO.OUT,initial=GPIO.LOW)
-    p=GPIO.PWM(In_Pin,50)
-    p.start(0) 
+    In_Pin = 21
+    GPIO.setup(In_Pin, GPIO.OUT, initial=GPIO.LOW)
+    p = GPIO.PWM(In_Pin, 50)
+    p.start(0)
     try:
-        if(int(status)==0):
-            r=0
+        if(int(status) == 0):
+            r = 0
         else:
-            r=180
+            r = 180
         p.ChangeDutyCycle(2.5+r/360*20)
         time.sleep(1)
     except:

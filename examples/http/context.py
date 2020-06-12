@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 try:
     import aliyun_iot_device
 
