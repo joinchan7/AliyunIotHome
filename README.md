@@ -82,11 +82,11 @@
 
 ### 注意事项
 
-- 使用 `http` 协议进行通讯时，需要 `token` 进行认证，`SDK` 默认使用内存型缓存（`cache-tools` 方案）进行 `token` 的保存。
+- 使用 `http` 协议进行通讯时，需要 `token` 进行认证，`SDK` 默认使用内存型缓存（`cache-tools` 方案）进行 `token` 的保存
 
 - ```python
   # 如果需要自行进行其他方案进行保存（file/memcached/redis），获取 token时，使用
-  iot.get_token(cache=False) ，
+  iot.get_token(cache=False)
   # publish 消息时，使用
   iot.publish(payload=payload, token=token)
   ```
